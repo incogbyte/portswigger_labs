@@ -2,7 +2,8 @@
 * JWT -> Json web tokens
 	*  most commonly used in authentication, session management and access control
 
-![[Pasted image 20230523183126.png]]
+![[/img/Pasted image 20230523183126.png]]
+![[img/Pasted image 20230523183126.png]]
 
 * What is JWT ?
 	* JSON web tokens (JWTs) are a standardized format for sending cryptographically signed JSON data between systems.
@@ -109,9 +110,9 @@ hashcat -a 0 -m 16500 <jwt> <wordlist>
 --- 
 
 * Dealing with JWT with burpsuite
-![[JWT/img/Pasted image 20230523185653.png]]
-![[/img/Pasted image 20230523185706.png]]
-![[img/Pasted image 20230523185714.png]]
+[[JWT/img/Pasted image 20230523185653.png]]
+[[Pasted image 20230523185706.png]]
+[[img/Pasted image 20230523185714.png]]
 
 
 
