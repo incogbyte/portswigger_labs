@@ -9,15 +9,15 @@
 `To solve the lab, modify your session token to gain access to the admin panel at `/admin`, then delete the user `carlos``
 
 * Using JWT editor tool
-![[Pasted image 20230523190331.png]]
+
+![](img/Pasted%20image%2020230523190331.png)
 
 * Change the value of `sub` to `administrador`
 
-![[Pasted image 20230523190713.png]]
-
+![](img/Pasted%20image%2020230523190713.png)
 
 * Delete the user to **solve** the lab
 
-![[Pasted image 20230523190819.png]]
+![](../img/Pasted%20image%2020230523190819.png)
 
 
