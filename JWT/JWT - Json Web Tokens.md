@@ -2,7 +2,10 @@
 * JWT -> Json web tokens
 	*  most commonly used in authentication, session management and access control
 
-![[/img/Pasted image 20230523183126.png]]
+![img/Pasted image 20230523183126.png](img/Pasted image 20230523183126.png)
+
+[img/Pasted image 20230523183126.png](img/Pasted image 20230523183126.png)
+
 ![[img/Pasted image 20230523183126.png]]
 
 * What is JWT ?
