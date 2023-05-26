@@ -7,14 +7,14 @@ You can log in to your own account using the following credentials: `wiener:pet
 
 * Create new key with JWT Editor
 
-![[Pasted image 20230524101306.png]]
+![](../img/Pasted_image_20230524101306.png)
 
 * Change the token
-![[Pasted image 20230524103147.png]]
-![[Pasted image 20230524103255.png]]
+![](../img/Pasted_image_20230524103147.png)
+![](../img/Pasted_image_20230524103255.png)
 
 * Solve the lab
-![[Pasted image 20230524103345.png]]
+![](../img/Pasted_image_20230524103345.png)
 
 
 

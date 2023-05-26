@@ -7,17 +7,17 @@ You can log in to your own account using the following credentials: `wiener:pet
 
 
 * User token
-![[Pasted image 20230523195006.png]]
+![](../img/Pasted_image_20230523195006.png)
 * Key found
-![[Pasted image 20230523195055.png]]
+![](../img/Pasted_image_20230523195055.png)
 
 * Tampering the JWT token with the **secret** found with the tool
 
-![[Pasted image 20230523195249.png]]
+![](../img/Pasted_image_20230523195249.png)
 
 * Lab solved
 
-![[Pasted image 20230523195857.png]]
+![](../img/Pasted_image_20230523195857.png)
 
 * 2º Method
 
@@ -32,4 +32,4 @@ You can log in to your own account using the following credentials: `wiener:pet
 9.  Send the request and observe that you have successfully accessed the admin panel.  
 10.  In the response, find the URL for deleting Carlos (`/admin/delete?username=carlos`). Send the request to this endpoint to solve the lab.
 
-![[Pasted image 20230523200409.png]]
+![](../img/Pasted_image_20230523200409.png)
