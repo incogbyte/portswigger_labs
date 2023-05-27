@@ -28,7 +28,3 @@ You can log in to your own account using the following credentials: `wiener:pet
 * Lab solved
 
 ![](../img/Pasted_image_20230524112829.png)
-
-
-
-

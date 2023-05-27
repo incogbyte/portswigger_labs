@@ -2,7 +2,7 @@
 * JWT -> Json web tokens
 	*  most commonly used in authentication, session management and access control
 
-* ![](img/Pasted_image_20230523183126.png)
+![](img/Pasted_image_20230523183126.png)
 
 * What is JWT ?
 	* JSON web tokens (JWTs) are a standardized format for sending cryptographically signed JSON data between systems.
@@ -99,14 +99,56 @@ hashcat -a 0 -m 16500 <jwt> <wordlist>
 
 * Injecting self-signed JWTs via the kid parameter
 	* Servers may use several cryptographic keys for signing different kinds of data, not just JWTs. For this reason, the header of a JWT may contain a `kid` (Key ID) parameter, which helps the server identify which key to use when verifying the signature;
-	* **Verification keys are often stored as a JWK Set**. In this case, the server may simply look for the JWK **with the same `kid` as the token**. However, the JWS specification doesn't define a concrete structure for this ID - **it's just an arbitrary string of the developer's choosing**. For example, they might use the `kid` parameter to point to a particular entry in a database, or even the name of a file;
+	* **Verification keys `kid` are often stored as a JWK Set**. In this case, the server may simply look for the JWK **with the same `kid` as the token**. However, the JWS specification doesn't define a concrete structure for this ID - **it's just an arbitrary string of the developer's choosing**. For example, they might use the `kid` parameter to point to a particular entry in a database, or even the name of a file;
 	* If this parameter is also vulnerable to [directory traversal](https://portswigger.net/web-security/file-path-traversal), an attacker could potentially force the server to use an arbitrary file from its filesystem as the verification key.
 	  `{ "kid": "../../path/to/file", "typ": "JWT", "alg": "HS256", "k":`
 	  ``
 	  * This is especially dangerous if the server also supports JWTs signed using a [symmetric algorithm](https://portswigger.net/web-security/jwt/algorithm-confusion#symmetric-vs-asymmetric-algorithms). In this case, an attacker could potentially point the `kid` parameter to a predictable, static file, then sign the JWT using a secret that matches the contents of this file;
 	  * You could theoretically do this with any file, but one of the simplest methods is to use `/dev/null`, which is present on most Linux systems. As this is an empty file, reading it returns an empty string. Therefore, signing the token with a empty string will result in a valid signature;
 	  * **If you're using the JWT Editor extension, note that this doesn't let you sign tokens using an empty string. However, due to a bug in the extension, you can get around this by using a Base64-encoded null byte**
-
+	 > If the server stores its verification keys in a database, the `kid` header parameter is also a potential vector for [SQL injection](https://portswigger.net/web-security/sql-injection) attacks
+	 
+* Other interesting JWT header parameters
+	*  `cty` ( Content Type) - Sometimes used to declare a media type for the content in the JWT payload.
+	* If you have found a way to bypass signature verification, you can try injecting a `cty` header to change the content type to `text/xml` or `application/x-java-serialized-object`, which can potentially enable new vectors for [XXE](https://portswigger.net/web-security/xxe) and [deserialization](https://portswigger.net/web-security/deserialization) attacks
+	* `x5c` (X.509 Certificate Chain) - Sometimes used to pass the X.509 public key certificate or certificate chain of the key used to digitally sign the JWT. This header parameter can be used to inject self-signed certificates, similar to the [`jwk` header injection](https://portswigger.net/web-security/jwt#injecting-self-signed-jwts-via-the-jwk-parameter) attacks.
+	* Check out [CVE-2017-2800](https://talosintelligence.com/vulnerability_reports/TALOS-2017-0293) and [CVE-2018-2633](https://mbechler.github.io/2018/01/20/Java-CVE-2018-2633).
+*  JWT algorithm confusion
+	* Even if a server uses robust secrets that you are unable to brute-force you may still be able to forge valid **JWTs by signing the token using an algorithm that the developers haven't anticipated**. This is known as an algorithm confusion attack
+	* https://portswigger.net/web-security/jwt/algorithm-confusion
+		* Occur when an attacker is able to force the server to verify the signature of a JSON web token ([JWT](https://portswigger.net/web-security/jwt)) using a different algorithm than is intended by the website's developers
+		* This may enable attackers to forge valid JWTs containing arbitrary values **without needing to know the server's secret signing key**.
+* Algorithm confusion
+	* Algorithm confusion vulnerabilities typically arise due to flawed implementation of JWT libraries.
+	* These methods rely on the `alg` parameter in the token's header to determine the type of verification they should perform.
+	 * Steps to reproduce the algorithm confusion attack
+		 * [Obtain the server's public key](https://portswigger.net/web-security/jwt/algorithm-confusion#step-1-obtain-the-server-s-public-key)
+		 * [Convert the public key to a suitable format](https://portswigger.net/web-security/jwt/algorithm-confusion#step-2-convert-the-public-key-to-a-suitable-format)
+		 * [Create a malicious JWT](https://portswigger.net/web-security/jwt/algorithm-confusion#step-3-modify-your-jwt) with a modified payload and the `alg` header set to `HS256`
+		 *  [Sign the token with HS256](https://portswigger.net/web-security/jwt/algorithm-confusion#step-4-sign-the-jwt-using-the-public-key), using the public key as the secret.
+	 *  Convert the public key to a suitable format
+		 * With the extension loaded, in Burp's main tab bar, go to the **JWT Editor Keys** tab.
+		 * Click **New RSA** Key. In the dialog, paste the JWK that you obtained earlier.
+		 * Select the **PEM** radio button and copy the resulting PEM key.
+		 * Go to the **Decoder** tab and Base64-encode the PEM.
+		 * Go back to the **JWT Editor Keys** tab and click **New Symmetric Key**.
+		 * In the dialog, click **Generate** to generate a new key in JWK format.
+		 * Replace the generated value for the `k` parameter with a Base64-encoded PEM key that you just copied.
+		 * Save the key.
+	 * Modify the JWT 
+		 * Once you have the public key in a suitable format, you can [modify the JWT](https://portswigger.net/burp/documentation/desktop/testing-workflow/session-management/jwts#editing-jwts) however you like. Just make sure that the `alg` header is set to `HS256`.
+	 * Sign the JWT using the public key
+		 * [Sign the token](https://portswigger.net/burp/documentation/desktop/testing-workflow/session-management/jwts#adding-a-jwt-signing-key) using the HS256 algorithm with the RSA public key as the secret
+* Deriving public keys from existing tokens
+	* In cases where the public key isn't readily available, you may still be able to test for algorithm confusion by deriving the key from a pair of existing JWTs.
+	* This process is relatively simple using tools such as `jwt_forgery.py` on the [`rsa_sign2n` GitHub repository](https://github.com/silentsignal/rsa_sign2n)
+	* To create a local container use the docker command bellow
+	* `docker run --rm -it portswigger/sig2n <token1> <token2>`
+	* This tool uses the JWTs that you provide to calculate one or more potential values of `n`. Don't worry too much about what this means - all you need to know is that only one of these matches the value of `n` used by the server's key. For each potential value, our script outputs:
+		*  A Base64-encoded PEM key in both X.509 and PKCS1 format.
+		* A forged JWT signed using each of these keys.
+		* To identify the correct key, **use Burp Repeater to send a request containing each of the forged JWTs**. **Only one** of these will be accepted by the server. You can then use the matching key to construct an algorithm confusion attack.
+		* For more information on how this process works, and details of how to use the standard `jwt_forgery.py` tool, please refer to the documentation provided in the [repository](https://github.com/silentsignal/rsa_sign2n).
 --- 
 
 * Dealing with JWT with burpsuite
@@ -117,4 +159,31 @@ hashcat -a 0 -m 16500 <jwt> <wordlist>
 ![](img/Pasted_image_20230523185714.png)
 
 
+--- 
 
+###  Symmetric vs asymmetric algorithms
+
+*  **HS256** (HMAC + SHA-256) use a "symmetric" key. (Symetric ("S" single key))
+	* This means that the server uses a **single key** to both sign and verify the token (Just like a password).
+![[Pasted image 20230526215855.png]]
+
+* **RS256** (RSA + SHA-256) use an "asymmetric" key pair.
+	* Private key, which the server uses to sign the token, and a mathematically related public key that can be used to verify the signature.
+![[Pasted image 20230526220003.png]]
+
+* As the names suggest, the private key **must be kept secret**, but the public key is often shared so that anybody can verify the signature of tokens issued by the server.
+--- 
+
+### How to FIX/Prevent JWT issues
+
+You can protect your own websites against many of the attacks we've covered by taking the following high-level measures:
+
+-   Use an up-to-date library for handling JWTs and make sure your developers fully understand how it works, along with any security implications. Modern libraries make it more difficult for you to inadvertently implement them insecurely, but this isn't foolproof due to the inherent flexibility of the related specifications.
+-   Make sure that you perform robust signature verification on any JWTs that you receive, and account for edge-cases such as JWTs signed using unexpected algorithms.
+-   Enforce a strict whitelist of permitted hosts for the `jku` header.
+-   Make sure that you're not vulnerable to [path traversal](https://portswigger.net/web-security/file-path-traversal) or SQL injection via the `kid` header parameter.
+Although not strictly necessary to avoid introducing vulnerabilities, we recommend adhering to the following best practice when using JWTs in your applications:
+-   Always set an expiration date for any tokens that you issue.
+-   Avoid sending tokens in URL parameters where possible.
+-   Include the `aud` (audience) claim (or similar) to specify the intended recipient of the token. This prevents it from being used on different websites.
+-   Enable the issuing server to revoke tokens (on logout, for example).
