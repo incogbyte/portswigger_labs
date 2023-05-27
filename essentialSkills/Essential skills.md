@@ -71,6 +71,24 @@
 	* You can occasionally take advantage of this to **obfuscate payloads for client-side attack**.
 	*  If the server-side checks are looking for the `alert()` payload explicitly, they might not spot this if you HTML encode one or more of the characters: `<img src=x onerror="&#x61;lert(1)">` ( When the browser renders the page, it will decode and execute the injected payload. )
 * Leading Zeros
-
+	* Using decimal or hex-style HTML encoding, you can optionally include arbitrary number of leading zeros in the code point to by pass WAF.
+	* If your payloads still gets block after the HTML encoding it, you can evade this filter using a prefixing with few zeros
+	  `<a href="javascript&#00000000000058;alert(1)">Click me</a>`
+	  `&#00000000000058;` -> %3a -> &#x3a -> `:` ( double dots : encoding )
+* ## Obfuscation via unicode escaping
+	*  **Unicode** escape sequences consist of the prefix `\u` followed by the four-digit hex code for the character.
+	* `\003a` represents a colon.
+	* ES6 also supports a new form of unicode escape using curly braces: `\u{3a}`.
+	* **Most programming languages** decode these unicode escapes. ( this includes the **JavaScript engine used by browsers** ).
+	* You can **obfuscate client-side payloads using unicode**, just like we did with HTML escapes
+	* For example, let's say you're trying to exploit [DOM XSS](https://portswigger.net/web-security/cross-site-scripting/dom-based) where your input is passed to the `eval()` sink as a string. If your initial attempts are blocked, try escaping one of the characters as follows: ``eval("\u0061lert(1)")``
+	* **Inside a string, you can escape any characters like this**. However, outside of a string, escaping some characters will result in a syntax error. This includes opening and closing parentheses. `<a href="javascript\u{0000000003a}alert(1)">Click me</a>`
+ -  Obfuscation via hex escaping
+	 - Another option when injecting into a string context is to use hex escapes.
+	 - Represent characters using their hexadecimal code point, prefixed with `\x`
+	 - For example, the lowercase letter `a` is represented by `\x61`
+	 - Just like **unicode escapes**, these **will be decoded client-side as long as the input is evaluated as a string**: `eval("\x61lert")` ( remember inside strings " " not outside ! )
+	 - Note that you can sometimes also obfuscate SQL statements in a similar manner using the prefix `0x`. For example, `0x53454c454354` may be decoded to form the `SELECT` keyword.
+		 https://portswigger.net/web-security/essential-skills/obfuscating-attacks-using-encodings
 --- 
 
