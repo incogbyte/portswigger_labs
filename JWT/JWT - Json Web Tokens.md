@@ -165,11 +165,11 @@ hashcat -a 0 -m 16500 <jwt> <wordlist>
 
 *  **HS256** (HMAC + SHA-256) use a "symmetric" key. (Symetric ("S" single key))
 	* This means that the server uses a **single key** to both sign and verify the token (Just like a password).
-![[Pasted image 20230526215855.png]]
+![](img/Pasted_image_20230526215855.png)
 
 * **RS256** (RSA + SHA-256) use an "asymmetric" key pair.
 	* Private key, which the server uses to sign the token, and a mathematically related public key that can be used to verify the signature.
-![[Pasted image 20230526220003.png]]
+![](img/Pasted_image_20230526220003.png)
 
 * As the names suggest, the private key **must be kept secret**, but the public key is often shared so that anybody can verify the signature of tokens issued by the server.
 --- 
