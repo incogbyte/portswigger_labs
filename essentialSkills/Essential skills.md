@@ -89,6 +89,27 @@
 	 - For example, the lowercase letter `a` is represented by `\x61`
 	 - Just like **unicode escapes**, these **will be decoded client-side as long as the input is evaluated as a string**: `eval("\x61lert")` ( remember inside strings " " not outside ! )
 	 - Note that you can sometimes also obfuscate SQL statements in a similar manner using the prefix `0x`. For example, `0x53454c454354` may be decoded to form the `SELECT` keyword.
-		 https://portswigger.net/web-security/essential-skills/obfuscating-attacks-using-encodings
+-  Obfuscation via XML encoding
+	- XML also supports character encoding using the same numeric scape sequences
+	- Even if you don't need to encode any special characters to avoid syntax errors, you can potentially take advantage of this behavior to obfuscate payloads in the same way as you do with HTML encoding,
+-  Obfuscation via octal escaping
+	- Octal escaping works in pretty much the same way as hex escaping, uses 8 numbering system rather than base-16.
+	- These are prefixed with a standalone backslash, meaning that the lowercase letter `a` is represented by `\141`. Example of `paylaod` `eval("\141lert(1)")`
+- Obfuscation via multiple encodings
+	- It is important to note that you can combine encodings to hide your payloads
+	- Example: `<a href="javascript:&bsol;u0061lert(1)">Click me</a>`
+	- Browsers will first HTML decode `&bsol;,` resulting in a backslash. This has the effect of turning the otherwise arbitrary `u0061` characters into the unicode escape `\u0061`:
+		``<a href="javascript:\u0061lert(1)">Click me</a>``
+- Obfuscation via the SQL CHAR() function
+	- By concatenating the returned values, you can use this approach to obfuscate blocked keywords. For example, even if `SELECT` is blacklisted, the following injection initially appears harmless:
+	- `CHAR(83)+CHAR(69)+CHAR(76)+CHAR(69)+CHAR(67)+CHAR(84)`
+	- However, when this is processed as SQL by the application, it will dynamically construct the `SELECT` keyword and execute the injected query.
+	- SQLMap has this encode [https://book.hacktricks.xyz/pentesting-web/sql-injection/sqlmap](https://book.hacktricks.xyz/pentesting-web/sql-injection/sqlmap)
 --- 
 
+### Identifying unknown vulnerabilities
+
+> Mystery labs have vulnerabilities that are unknown by people :) 
+> You need to go alone here :D 
+
+[https://portswigger.net/web-security/mystery-lab-challenge](https://portswigger.net/web-security/mystery-lab-challenge)
