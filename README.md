@@ -5,6 +5,7 @@
 
 *  [JWT](JWT/JWT%20-%20Json%20Web%20Tokens.md)  - JSON Web Tokens
 * [Essential Skills](essentialSkills/Essential%20skills.md) - Mastery your burp knowledge 🥷🏿
+* [SQL Injection](SQLInjection/SQL%20Injection.md) - SQL Injection
 
 
 
