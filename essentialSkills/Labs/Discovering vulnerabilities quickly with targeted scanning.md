@@ -13,11 +13,11 @@ Due to the tight time limit, we recommend using [Burp Scanner](https://portswig
 
 * Do active scan using Burp to find the XXE vulnerable endpoint
 
-![](Pasted_image20230527115426.png)
+![](/static/img/Pasted_image_20230527115426.png)
 
 * Burp will find the vulnerable endpoint
 
-![](Pasted_image20230527115506.png)
+![](/static/img/Pasted_image_20230527115506.png)
 
 * Using the payload below to solve the lab
 
@@ -27,4 +27,4 @@ Due to the tight time limit, we recommend using [Burp Scanner](https://portswig
 
 * Lab solved!
 
-![](Pasted_image20230527115401.png)
+![](/static/img/Pasted_image_20230527115401.png)

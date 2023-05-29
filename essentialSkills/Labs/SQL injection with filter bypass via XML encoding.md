@@ -12,10 +12,10 @@ The database contains a `users` table, which contains the usernames and passwo
 
 ### Solution
 - verify the input `1 + 1` return
-![](Pasted_image20230528175534.png)
+![](/static/ima/Pasted_image_20230528175534.png)
 - WAF block the payload `union select null`
-![](Pasted_image20230528175624.png)
+![](/static/img/Pasted_image_20230528175624.png)
 - Using the burp extension hackvector to bypass the waf with **dec_entities/hex_entities**
-![](Pasted_image20230528175744.png)
+![](/static/img/Pasted_image_20230528175744.png)
 
 - Log with admin account and solve the lab!
