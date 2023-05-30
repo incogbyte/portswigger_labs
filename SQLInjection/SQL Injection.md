@@ -91,6 +91,26 @@ ERROR: invalid input syntax for type integer: "Example data"
 
 ---
 
+## Exploiting blind SQL injection by triggering time delays
+
+- In some of the preceding examples, we've seen how you can exploit the way applications fail to properly handle database errors. **But what if the application catches these errors and handles them gracefully**? Triggering a database error when the injected SQL query is executed no longer causes any difference in the application's response, so the preceding technique of inducing conditional errors will not work.
+- it is often possible to exploit the **blind SQL injection vulnerability by triggering time delays conditionally**, depending on an injected condition. **Because SQL queries are generally processed synchronously** by the application, delaying the execution of a SQL query will also delay the HTTP response.
+- This allows us to infer the truth of the injected condition based on the time taken before the HTTP response is received.
+- **The techniques for triggering a time delay are highly specific to the type of database being used**
+- The techniques for triggering a time delay are highly specific to the type of database being used. On Microsoft SQL Server, input like the following can be used to test a condition and trigger a delay depending on whether the expression is true:
+```sql
+'; IF (SELECT COUNT(Username) FROM Users WHERE Username = 'Administrator' AND SUBSTRING(Password, 1, 1) > 'm') = 1 WAITFOR DELAY '0:0:{delay}'--
+```
+
+- The first of these inputs will not trigger a delay, because the condition `1=2` is false. The second input will trigger a delay of 10 seconds, because the condition `1=1` is true.
+- Using this technique, we can retrieve data in the way already described, by systematically testing one character at a time:
+```sql
+'; IF (SELECT COUNT(Username) FROM Users WHERE Username = 'Administrator' AND SUBSTRING(Password, 1, 1) > 'm') = 1 WAITFOR DELAY '0:0:{delay}'--
+```
+
+
+---
+
 ### SQL Injection Examples
 
 - [Retrieving hidden data](https://portswigger.net/web-security/sql-injection#retrieving-hidden-data), where you can modify a SQL query to return additional results.
