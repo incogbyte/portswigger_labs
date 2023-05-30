@@ -74,7 +74,21 @@ xyz' AND (SELECT CASE WHEN (1=1) THEN 1/0 ELSE 'a' END)='a
 `xyz' AND (SELECT CASE WHEN (Username = 'Administrator' AND SUBSTRING(Password, 1, 1) > 'm') THEN 1/0 ELSE 'a' END FROM Users)='a`
 ```
 
-https://portswigger.net/web-security/sql-injection/blind
+--- 
+### Extracting sensitive data via verbose SQL error messages
+
+- Misconfiguration of the database sometimes results in verbose error messages.
+- Example, consider the following error message, which occurs after injecting a single quote into an `id` parameter: ``Unterminated string literal started at position 52 in SQL SELECT * FROM tracking WHERE id = '''. Expected char``
+- Occasionally, you may be able to induce the application to generate an error message that contains some of the data that is returned by the query. This effectively turns an otherwise blind SQL injection vulnerability into a "visible" one.
+- One way of achieving this is to use the `CAST()` function, which enables you to convert one data type to another. For example, consider a query containing the following statement:
+```sql
+CAST((SELECT example_column FROM example_table) AS int)
+```
+- Often, the data that you're trying to read is a string. Attempting to convert this to an incompatible data type, such as an `int`, may cause an error similar to the following:
+```
+ERROR: invalid input syntax for type integer: "Example data"
+```
+
 ---
 
 ### SQL Injection Examples
