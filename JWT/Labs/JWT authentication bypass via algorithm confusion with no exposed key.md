@@ -17,7 +17,7 @@ You can log in to your own account using the following credentials: `wiener:pet
 * Access the lab, login and copy the `session` token.
 * Log out and login again to get another `session` token
 * Running the tool with the tokens that you got
-`docker ru![](../img/Pasted_image_20230526232453.png)n --rm -it portswigger/sig2n <token1> <token2>`
+`docker run --rm -it portswigger/sig2n <token1> <token2>`
 ![](/static/img/Pasted_image_20230526232453.png)
 ![](/static/img/Pasted_image_20230526233935.png)
 * Replace the session cookie with this new JWT (from the output of the tool) and then send the request
