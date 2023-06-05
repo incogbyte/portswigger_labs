@@ -18,17 +18,17 @@ You can log in to your own account using the following credentials: `wiener:pet
 * Log out and login again to get another `session` token
 * Running the tool with the tokens that you got
 `docker ru![](../img/Pasted_image_20230526232453.png)n --rm -it portswigger/sig2n <token1> <token2>`
-![](../img/Pasted_image_20230526232453.png)
-![](../img/Pasted_image_20230526233935.png)
+![](/static/img/Pasted_image_20230526232453.png)
+![](/static/img/Pasted_image_20230526233935.png)
 * Replace the session cookie with this new JWT (from the output of the tool) and then send the request
-![](../img/Pasted_image_20230526234000.png)
+![](/static/img/Pasted_image_20230526234000.png)
 
 * Copy  the x509 key from the output tool and go to `JWT Editor Tab`
 *  Create a new `symetric key` and change the value of `k` of the x509 copied from previous step
 * Go back to repeater and at `JSON Web Token` tab change the value of `sub` to administrador, after that click at the bottom `sign` button.
-![](../img/Pasted_image_20230526234412.png)
+![](/static/img/Pasted_image_20230526234412.png)
 
 Send the request to `/admin/delete?username=carlos`
 
 * Lab solved!
-  ![](../img/Pasted_image_20230526234532.png)
+  ![](/static/img/Pasted_image_20230526234532.png)
