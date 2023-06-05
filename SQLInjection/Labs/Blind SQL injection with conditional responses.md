@@ -21,14 +21,14 @@ To solve the lab, log in as the `administrator` user.
 ![](/static/img/Pasted_image_20230529095428.png)
 
 - Payload `' and 1=2 --` (welcome back! message not appears )
-![](static/img/Pasted_image_20230529095633.png)
+![](/static/img/Pasted_image_20230529095633.png)
 
 - Exploitation
 	- confirming that the username is administrator
 	- 1. Verify that the condition is true, confirming that there is a user called `administrator`.![](../img/Pasted_image_20230529115850.png)
 - 2. The next step is to determine how many characters are in the password of the `administrator` user
 
-![](static/img/Pasted_image_20230529120631.png)
+![](/static/img/Pasted_image_20230529120631.png)
 
 - Length of password: `' and (select 'a' from users where username='administrator' and length(password)>19)='a`
 
@@ -37,11 +37,11 @@ To solve the lab, log in as the `administrator` user.
 
 - 3.  After determining the length of the password, the next step is to test the character at each position to determine its value. This involves a much larger number of requests, so you need to use [Burp Intruder](https://portswigger.net/burp/documentation/desktop/tools/intruder). Send the request you are working on to Burp Intruder, using the context menu.
 
-![](static/img/Pasted_image_20230529123150.png)
+![](/static/img/Pasted_image_20230529123150.png)
 
-![](static/img/Pasted_image_20230529123210.png)
+![](/static/img/Pasted_image_20230529123210.png)
 
 - Lab Solved 
 	- `' AND (SELECT SUBSTRING(password,20,1) FROM users WHERE username='administrator')='j`
-![](static/img/Pasted_image_20230529130043.png)
+![](/static/img/Pasted_image_20230529130043.png)
 
