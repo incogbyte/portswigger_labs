@@ -5,7 +5,7 @@
 	- [https://portswigger.net/web-security/sql-injection/cheat-sheet](https://portswigger.net/web-security/sql-injection/cheat-sheet)
 
 
-![](../img/Paste_image_20230529091416.png)
+![](../img/Pasted_image_20230529091416.png)
 
 ### What is SQL Injection
 

@@ -16,5 +16,5 @@ To solve the lab, exploit the [SQL injection](https://portswigger.net/web-secur
 ### Lab solution
 
 1. Access the app and submit the payload below inside the `trackingid` cookie
-![](../img/Paste_image_20230530105424.png)
+![](../img/Pasted_image_20230530105424.png)
 2. lab solved!

