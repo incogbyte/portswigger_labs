@@ -138,6 +138,140 @@ ERROR: invalid input syntax for type integer: "Example data"
 - You can then query `information_schema.columns` to list the columns in individual tables, example: ``SELECT * FROM information_schema.columns WHERE table_name = 'Users'``
 > Oracle databases, You can list tables by querying `all_tables`. `SELECT * FROM all_tables` and to retrieve the list of columns you can use `all_tab_columns` , example: `SELECT * FROM all_tab_columns WHERE table_name = 'USERS'`
 
+----
+### Union SQL Injection
+
+- `UNION` keyword can be used to retrieve data **from other tables** within the database
+- The `UNION` keyword lets you execute one or more additional `SELECT` queries and append the results to the original query -> `SELECT a, b FROM table1 UNION SELECT c, d FROM table2`
+
+> For a `UNION` query to work, two key requirements **must be met**:
+> 1 - The individual queries must return the same **number of columns**
+> 2 - The data types in each column must be compatible between the individual queries
+
+- You need to ask
+	-  **How many columns** are being returned from the original query?
+	- Which columns returned from the original query are of a suitable data type to hold the results from the injected query?
+
+##### Determining the number of columns required in a SQL injection UNION attack
+
+- there are **two effective methods** to determine how many columns are being returned from the original query.
+	-  injecting a series of `ORDER BY` clauses and incrementing the specified column index until an error occurs  -> `order by 1-- `
+	- The second method involves submitting a series of `UNION SELECT` payloads specifying a different number of null values: -> `union select null--`
+
+> The application might actually return this error message, or might just return a generic error or no results. When the number of nulls matches the number of columns, the database returns an additional row in the result set, containing null values in each column. The effect on the resulting HTTP response depends on the application's code. If you are lucky, you will see some additional content within the response, such as an extra row on an HTML table. Otherwise, the null values might trigger a different error, such as a `NullPointerException`. Worst case, the response might be indistinguishable from that which is caused by an incorrect number of nulls, making this method of determining the column count ineffective.
+
+> NOTE: The reason for using `NULL` as the values returned from the injected `SELECT` query is that the data types in each column must be compatible between the original and the injected queries. Since `NULL` is convertible to every commonly used data type, using `NULL` maximizes the chance that the payload will succeed when the column count is correct.
+> Oracle Database -> On Oracle, every `SELECT` query must use the `FROM` keyword and specify a valid table. There is a built-in table on Oracle called `dual` which can be used for this purpose. So the injected queries on Oracle would need to look like `UNION SELECT NULL FROM DUAL--`  . 
+
+##### Finding columns with a useful data type in a SQL injection UNION attack
+
+- The reason for performing a SQL injection UNION attack is to be able to retrieve the results from an injected query. Generally, the interesting data that you want to retrieve will be in string form, so you need to find one or more columns in the original query results whose data type is, or is compatible with, string data, but you need first:
+	- Determined the number of required columns
+	- You can probe each column to test whether it can hold string data by submitting a series of `UNION SELECT` payloads that place a string value into each column in turn, example: 
+
+```sql
+
+' UNION SELECT 'a',NULL,NULL,NULL-- 
+' UNION SELECT NULL,'a',NULL,NULL-- 
+' UNION SELECT NULL,NULL,'a',NULL-- 
+' UNION SELECT NULL,NULL,NULL,'a'--
+
+```
+
+- If the data type of a column is not compatible with string data, the injected query will cause a database error.
+- If an error does not occur, and the application's response contains some additional content including the injected string value, then the relevant column is suitable for retrieving string data.
+
+##### Using a SQL injection UNION attack to retrieve interesting data 
+
+- When you have determined the number of columns returned by the original query and found which columns can hold string data, you are in a position to retrieve interesting data
+- Suppose that:
+	- The original query returns two columns, both of which can hold string data.
+	- The injection point is a quoted string within the `WHERE` clause.
+	- The database contains a table called `users` with the columns `username` and `password`.
+
+In this situation, you can retrieve the contents of the `users` table by submitting the input:
+
+`' UNION SELECT username, password FROM users--`
+
+Of course, the crucial information needed to perform this attack is that there is a table called `users` with two columns called `username` and `password`. Without this information, you would be left trying to guess the names of tables and columns. In fact, all modern databases provide ways of examining the database structure, to determine what tables and columns it contains.
+
+
+##### Retrieving multiple values within a single column
+
+In the preceding example, suppose instead that the query only returns a single column.
+You can easily retrieve multiple values together within this single column by concatenating the values together, ideally including a suitable separator to let you distinguish the combined values. For example, on Oracle you could submit the input:
+
+`' UNION SELECT username || '~' || password FROM users--`
+
+This uses the double-pipe sequence `||` which is a string concatenation operator on Oracle. The injected query concatenates together the values of the `username` and `password` fields, separated by the `~` character.
+
+The results from the query will let you read all of the usernames and passwords, for example:
+
+`... administrator~s3cure wiener~peter carlos~montoya ...`
+
+Note that different databases use different syntax to perform string concatenation. For more details, see the [SQL injection cheat sheet](https://portswigger.net/web-security/sql-injection/cheat-sheet).
+
+----
+
+### Retrieving hidden data
+
+
+Consider a shopping application that displays products in different categories. When the user clicks on the Gifts category, their browser requests the URL:
+
+`https://insecure-website.com/products?category=Gifts`
+
+This causes the application to make a SQL query to retrieve details of the relevant products from the database:
+
+`SELECT * FROM products WHERE category = 'Gifts' AND released = 1`
+
+This SQL query asks the database to return:
+
+- all details (*)
+- from the products table
+- where the category is Gifts
+- and released is 1.
+
+The restriction `released = 1` is being used to hide products that are not released. For unreleased products, presumably `released = 0`.
+
+The application doesn't implement any defenses against SQL injection attacks, so an attacker can construct an attack like:
+
+`https://insecure-website.com/products?category=Gifts'--`
+
+This results in the SQL query:
+
+`SELECT * FROM products WHERE category = 'Gifts'--' AND released = 1`
+
+The key thing here is that the double-dash sequence `--` is a comment indicator in SQL, and means that the rest of the query is interpreted as a comment. This effectively removes the remainder of the query, so it no longer includes `AND released = 1`. This means that all products are displayed, including unreleased products.
+
+Going further, an attacker can cause the application to display all the products in any category, including categories that they don't know about:
+
+`https://insecure-website.com/products?category=Gifts'+OR+1=1--`
+
+This results in the SQL query:
+
+`SELECT * FROM products WHERE category = 'Gifts' OR 1=1--' AND released = 1`
+
+The modified query will return all items where either the category is Gifts, or 1 is equal to 1. Since `1=1` is always true, the query will return all items.
+
+
+> Take care when injecting the condition `OR 1=1` into a SQL query. Although this may be harmless in the initial context you're injecting into, it's common for applications to use data from a single request in multiple different queries. If your condition reaches an `UPDATE` or `DELETE` statement, for example, this can result in an accidental loss of data.
+
+#### Subverting application logic
+
+Consider an application that lets users log in with a username and password. If a user submits the username `wiener` and the password `bluecheese`, the application checks the credentials by performing the following SQL query:
+
+`SELECT * FROM users WHERE username = 'wiener' AND password = 'bluecheese'`
+
+If the query returns the details of a user, then the login is successful. Otherwise, it is rejected.
+
+Here, an attacker can log in as any user without a password simply by using the SQL comment sequence `--` to remove the password check from the `WHERE` clause of the query. For example, submitting the username `administrator'--` and a blank password results in the following query:
+
+`SELECT * FROM users WHERE username = 'administrator'--' AND password = ''`
+
+This query returns the user whose username is `administrator` and successfully logs the attacker in as that user
+
+
+
 ---
 
 ### SQL Injection Examples
