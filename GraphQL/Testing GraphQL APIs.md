@@ -99,3 +99,66 @@ You can potentially glean useful information from this, as the response is effec
 [Clairvoyance](https://github.com/nikitastupin/clairvoyance) is a tool that uses suggestions to automatically recover all or part of a GraphQL schema, even when introspection is disabled. This makes it significantly less time consuming to piece together information from suggestion responses.
 
 You cannot disable suggestions directly in Apollo. See [this GitHub thread](https://github.com/apollographql/apollo-server/issues/3919#issuecomment-836503305) for a workaround.
+
+## Bypassing GraphQL introspection defenses
+
+If you cannot get introspection queries to run for the API you are testing, try inserting a special character after the `__schema` keyword.
+
+When developers disable introspection, they could use a regex to exclude the `__schema` keyword in queries. You should try characters like spaces, new lines and commas, as they are ignored by GraphQL but not by flawed regex.
+
+As such, if the developer has only excluded `__schema{`, then the below introspection query would not be excluded.
+
+`#Introspection query with newline { "query": "query{__schema {queryType{name}}}" }`
+
+If this doesn't work, try running the probe over an alternative request method, as introspection may only be disabled over POST. Try a GET request, or a POST request with a content-type of `x-www-form-urlencoded`.
+
+The example below shows an introspection probe sent via GET, with URL-encoded parameters.
+
+`# Introspection probe as GET request GET /graphql?query=query%7B__schema%0A%7BqueryType%7Bname%7D%7D%7D`
+
+#### Note
+
+If an endpoint will only accept introspection queries over GET and you want to analyze the results of the query using InQL Scanner, you will first need to save the query results to a file. You can then load this file into InQL, where it will be parsed as normal.
+
+
+## Bypassing rate limiting using aliases
+
+Ordinarily, GraphQL objects can't contain multiple properties with the same name. Aliases enable you to bypass this restriction by explicitly naming the properties you want the API to return. You can use aliases to return multiple instances of the same type of object in one request.
+
+#### More information
+
+For more information on GraphQL aliases, see [Aliases](https://portswigger.net/web-security/graphql/what-is-graphql#aliases).
+
+While aliases are intended to limit the number of API calls you need to make, they can also be used to brute force a GraphQL endpoint.
+
+Many endpoints will have some sort of rate limiter in place to prevent brute force attacks. Some rate limiters work based on the number of HTTP requests received rather than the number of operations performed on the endpoint. Because aliases effectively enable you to send multiple queries in a single HTTP message, they can bypass this restriction.
+
+The simplified example below shows a series of aliased queries checking whether store discount codes are valid. This operation could potentially bypass rate limiting as it is a single HTTP request, even though it could potentially be used to check a vast number of discount codes at once.
+
+`#Request with aliased queries query isValidDiscount($code: Int) { isvalidDiscount(code:$code){ valid } isValidDiscount2:isValidDiscount(code:$code){ valid } isValidDiscount3:isValidDiscount(code:$code){ valid } }`
+
+## GraphQL CSRF
+
+Cross-site request forgery (CSRF) vulnerabilities enable an attacker to induce users to perform actions that they do not intend to perform. This is done by creating a malicious website that forges a cross-domain request to the vulnerable application.
+
+#### More information
+
+For more information on CSRF vulnerabilities in general, see the [CSRF academy topic](https://portswigger.net/web-security/csrf).
+
+GraphQL can be used as a vector for CSRF attacks, whereby an attacker creates an exploit that causes a victim's browser to send a malicious query as the victim user.
+
+### How do CSRF over GraphQL vulnerabilities arise?
+
+CSRF vulnerabilities can arise where a GraphQL endpoint does not validate the content type of the requests sent to it and no CSRF tokens are implemented.
+
+POST requests that use a content type of `application/json` are secure against forgery as long as the content type is validated. In this case, an attacker wouldn't be able to make the victim's browser send this request even if the victim were to visit a malicious site.
+
+However, alternative methods such as GET, or any request that has a content type of `x-www-form-urlencoded`, can be sent by a browser and so may leave users vulnerable to attack if the endpoint accepts these requests. Where this is the case, attackers may be able to craft exploits to send malicious requests to the API.
+
+The steps to construct a [CSRF attack](https://portswigger.net/web-security/csrf) and deliver an exploit are the same for GraphQL-based CSRF vulnerabilities as they are for "regular" CSRF vulnerabilities. For more information on this process, see [How to construct a CSRF attack](https://portswigger.net/web-security/csrf#how-to-construct-a-csrf-attack).
+
+To defend against GraphQL CSRF vulnerabilities, ensure the following:
+
+- Your GraphQL API only accepts queries over JSON-encoded POST.
+- The API validates that content provided matches the supplied content type.
+- The API has a secure CSRF token mechanism.
